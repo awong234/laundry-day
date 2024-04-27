@@ -78,6 +78,7 @@ clean_tsa_data = function(years) {
     # data_tables, and then bind to that this year's data.
     df = bind_rows(data_tables)
     df = bind_rows(df, this_years_data)
+    df
 }
 
 df = clean_tsa_data(years = years)
