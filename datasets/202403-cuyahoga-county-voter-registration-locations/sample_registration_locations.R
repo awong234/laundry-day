@@ -1,6 +1,7 @@
 library(pdftools)
 
-txt = pdf_text(here::here("datasets/cuyahoga-county-voter-registration-locations/voter-registration-locations.pdf"))
+# here::here references paths from the _root_ of the project.
+txt = pdf_text(here::here("datasets", "202403-cuyahoga-county-voter-registration-locations", "voter-registration-locations.pdf"))
 
 # Look at the first page
 
@@ -85,7 +86,7 @@ library(ggmap)
 
 ggmap::register_google(key = Sys.getenv("GOOGLE_API"))
 
-geocode_m = memoise::memoise(ggmap::geocode, cache = cachem::cache_disk('./datasets/cuyahoga-county-voter-registration-locations/cache'))
+geocode_m = memoise::memoise(ggmap::geocode, cache = cachem::cache_disk(here::here("datasets", "202403-cuyahoga-county-voter-registration-locations", "cache")))
 
 lonlat = purrr::map(pages$address, .f = function(x) {
     if (!is.na(x)) res = geocode_m(x) else res = tibble::tibble(lon = NA, lat = NA)
@@ -97,7 +98,7 @@ pages$lonlat = lonlat
 lonlat_df = lonlat |> do.call(what = rbind, args = _)
 lonlat_df$location = pages$location
 
-get_map_m = memoise::memoise(ggmap::get_map, cache = cachem::cache_disk('./datasets/cuyahoga-county-voter-registration-locations/cache/map'))
+get_map_m = memoise::memoise(ggmap::get_map, cache = cachem::cache_disk(here::here("datasets", "202403-cuyahoga-county-voter-registration-locations", "cache", "map")))
 
 ggmap(get_map_m(location = 'Cleveland')) +
     geom_point(data = lonlat_df, aes(x = lon, y = lat))
