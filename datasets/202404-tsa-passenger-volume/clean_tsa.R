@@ -99,6 +99,7 @@ df = df |>
         Year = as.factor(lubridate::year(Date)),
         Wday = factor(lubridate::wday(Date, label = TRUE), levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"), ordered = FALSE),
         DayOfMonth = as.factor(lubridate::day(Date)),
+        DayOfYear = lubridate::yday(Date),
         WeekOfYear = as.factor(lubridate::week(Date)),
         IsHoliday = Date %in% holidays,
         WhichHoliday = names(holidays)[match(Date, holidays)],
@@ -113,14 +114,14 @@ df = df |> mutate(SurroundsHoliday = abs(Date - ClosestHoliday) < days_around_ho
 df = df |> arrange(Date)
 
 # Model could be improved by adding in a COVID covariate explicitly instead of just modeling overall trend in Date.
-mod = mgcv::gam(Numbers ~ s(as.numeric(Date)) + Wday + WhichHoliday + SurroundsHoliday, data = df)
-mod_scaled = mgcv::gam(scale(Numbers) ~ s(as.numeric(Date)) + Wday + WhichHoliday + SurroundsHoliday, data = df)
+mod = mgcv::gam(Numbers ~ s(as.numeric(Date)) + s(DayOfYear) + Wday + WhichHoliday + SurroundsHoliday, data = df)
+mod_scaled = mgcv::gam(scale(Numbers) ~ s(as.numeric(Date)) + s(DayOfYear) + Wday + WhichHoliday + SurroundsHoliday, data = df)
 summary(mod_scaled)
 f = fitted(mod)
 plot(df$Date, df$Numbers, type = 'l')
 lines(df$Date, f, col = 'red')
 
 # Tuesdays are the least busy day to fly, followed by Saturday, and Wednesday.
-# Fridays are the busiest day to fly, followed by Sunday, and Monday.
+# Fridays are the busiest day to fly, followed by Sunday, and Thursday
 # Weekday (+/-5 days) surrounding holiday increases passenger volume by 0.13 standard deviations
-# Least-traveled holidays are Thanksgiving, Christmas, Independence Day, in that order.
+# Least-traveled holidays are Thanksgiving, Independence Day, Christmas, in that order.
