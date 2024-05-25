@@ -171,7 +171,17 @@ if (!require("tis")) install.packages("tis")
 if (!require("mgcv")) install.packages("mgcv")
 ```
 
-```{r}
+Final conclusions:
+
+"# Tuesdays are the least busy day to fly, followed by Saturday, and Wednesday."
+
+"# Fridays are the busiest day to fly, followed by Sunday, and Thursday"
+
+"# Weekday (+/-5 days) surrounding holiday increases passenger volume by 0.13 standard deviations"
+
+"# Least-traveled holidays are Thanksgiving, Independence Day, Christmas, in that order."
+
+```{r Model}
 # Model
 
 holidays = tis::holidays(years)
@@ -198,12 +208,16 @@ df = df |> mutate(SurroundsHoliday = abs(Date - ClosestHoliday) < days_around_ho
 
 df = df |> arrange(Date)
 
-# # Model could be improved by adding in a COVID covariate explicitly instead of just modeling overall trend in Date.
+# Model could be improved by adding in a COVID covariate explicitly instead of just modeling overall trend in Date.
 # mod = mgcv::gam(Numbers ~ s(as.numeric(Date)) + s(DayOfYear) + Wday + WhichHoliday + SurroundsHoliday, data = df)
 # mod_scaled = mgcv::gam(scale(Numbers) ~ s(as.numeric(Date)) + s(DayOfYear) + Wday + WhichHoliday + SurroundsHoliday, data = df)
 # summary(mod_scaled)
 # f = fitted(mod)
 # plot(df$Date, df$Numbers, type = 'l')
 # lines(df$Date, f, col = 'red')
-```
 
+# Tuesdays are the least busy day to fly, followed by Saturday, and Wednesday.
+# Fridays are the busiest day to fly, followed by Sunday, and Thursday
+# Weekday (+/-5 days) surrounding holiday increases passenger volume by 0.13 standard deviations
+# Least-traveled holidays are Thanksgiving, Independence Day, Christmas, in that order.
+```
