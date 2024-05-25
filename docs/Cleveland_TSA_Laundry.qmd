@@ -1,0 +1,209 @@
+---
+title: "202404-tsa-passenger-volume"
+author: "Cleveland R User Group's Alec Wong"
+format: html
+editor: visual
+---
+
+## Goal
+
+To run a Data Scrapping and wrangling exercise for the Cleveland R User group meetup: "acquiring and molding data into a conventional format ready to be used by data analytical tools."
+
+## Conventions
+
+This document is only a nice version of the R code.
+
+Original comments from Alex are in quotes as well as variable names. All the original code is kept untouched and can be read in this document, some output is not shown when is not useful.
+
+## Development
+
+Libraries used were rvest, dplyr and lubridate due to the extensive presence of dates in the read data.
+
+```{r libraries load, output=FALSE}
+#library(rvest) # for scrapping
+#library(dplyr) # for data transformation
+#library(lubridate) # for works with dates and times
+
+if (!require("rvest")) install.packages("rvest")
+if (!require("dplyr")) install.packages("dplyr")
+if (!require("lubridate")) install.packages("lubridate")
+
+```
+Data was scrapped from tsa.gov website in two sets, from 2019 until 2023 in variable "joined_urls" because the table in the source website is different for the present year data and then in "this_years_data".
+```{r URL}
+baseurl = "https://www.tsa.gov/travel/passenger-volumes"
+years = seq(2019, 2023)
+joined_urls = paste(baseurl, years, sep = '/')
+```
+Links can be checked by checking the variable.
+```{r}
+joined_urls
+```
+Data is pulled from the website into variable "html_docs" with lapply for rvest's read_html.
+
+```{r Pull in the HTML}
+# Pull in the HTML
+html_docs = lapply(joined_urls, \(x) {
+    rvest::read_html(x)
+})
+```
+
+Checking "html_docs".
+
+```{r}
+html_docs
+```
+
+"Pull out the table from the HTML (only one table per page), and `pluck` to turn it into a list of tables, not a list of lists (html_table returns a list).
+Then fix the data fields to proper data types from character."
+
+```{r}
+# Pull out the table from the HTML (only one table per page), and `pluck` to
+# turn it into a list of tables, not a list of lists (html_table returns a list)
+# Then fix the data fields to proper data types from character.
+data_tables = lapply(html_docs, \(x) {
+    x |> rvest::html_table() |> purrr::pluck(1) |>
+        mutate(
+            Date = as.Date(Date, format = '%m/%d/%Y'),
+            Numbers = gsub(pattern = "[^0-9\\.]", replacement = "", x = Numbers) |> as.numeric()
+        )
+})
+```
+
+Date formats were changed to a more computer-like format.
+
+As the source website has a different table for present year data, showing two columns in comparison with the previous year... "This year's data -- this is slightly different so we'll treat it slightly differently."
+
+```{r}
+# This year's data -- this is slightly different so we'll treat it slightly differently.
+this_years_data = rvest::read_html(baseurl) |> rvest::html_table() |> purrr::pluck(1)
+# Pull out the first two columns -- this _ought_ to be just the Date field and the Current Year field.
+this_years_data = this_years_data[, c(1,2)]
+# Current Year field needs to be named "Numbers" to coincide with the archive data fields.
+colnames(this_years_data)[2] = 'Numbers'
+# Convert the data fields to proper data types
+this_years_data = this_years_data |>
+    mutate(
+        Date = as.Date(Date, format = '%m/%d/%Y'),
+        Numbers = gsub(pattern = "[^0-9\\.]", replacement = "", x = Numbers) |> as.numeric()
+    )
+```
+
+The two dfs can be checked:
+
+```{r}
+head(data_tables)
+head(this_years_data)
+```
+
+Joining into one single data.
+
+```{r}
+# Put it all together -- bind together the list of data frames that is
+# data_tables, and then bind to that this year's data.
+df = bind_rows(data_tables)
+df = bind_rows(df, this_years_data)
+```
+
+And checking again the whole data into one df.
+
+```{r}
+head(df)
+```
+
+It can be all written as one single function.
+
+```{r, eval=FALSE}
+# As a single function
+clean_tsa_data = function(years) {
+    baseurl = "https://www.tsa.gov/travel/passenger-volumes"
+    joined_urls = paste(baseurl, years, sep = '/')
+
+    # Pull in the HTML
+    html_docs = lapply(joined_urls, \(x) {
+        rvest::read_html(x)
+    })
+
+    fix_data_types = function(df) {
+        df |> mutate(
+            Date = as.Date(Date, format = '%m/%d/%Y'),
+            Numbers = gsub(pattern = "[^0-9\\.]", replacement = "", x = Numbers) |> as.numeric()
+        )
+    }
+
+    # Pull out the table from the HTML (only one table per page), and `pluck` to
+    # turn it into a list of tables, not a list of lists (html_table returns a list)
+    # Then fix the data fields to proper data types from character.
+    data_tables = lapply(html_docs, \(x) {
+        x |> rvest::html_table() |> purrr::pluck(1) |> fix_data_types()
+    })
+
+    # This year's data -- this is slightly different so we'll treat it slightly differently.
+    this_years_data = rvest::read_html(baseurl) |> rvest::html_table() |> purrr::pluck(1)
+    # Pull out the first two columns -- this _ought_ to be just the Date field and the Current Year field.
+    this_years_data = this_years_data[, c(1,2)]
+    # Current Year field needs to be named "Numbers" to coincide with the archive data fields.
+    colnames(this_years_data)[2] = 'Numbers'
+    # Convert the data fields to proper data types
+    this_years_data = this_years_data |> fix_data_types()
+
+    # Put it all together -- bind together the list of data frames that is
+    # data_tables, and then bind to that this year's data.
+    df = bind_rows(data_tables)
+    df = bind_rows(df, this_years_data)
+    df
+}
+```
+
+At this point the Exploratory Data Analysis could beging, although the goal of the exercise was only to collect and tide the data, there was more time available that was used for some further analysis.
+
+```{r}
+# Visualize
+
+plot(df$Date, df$Numbers, type = 'l')
+```
+
+Tis: Time Indexed Series package and mgcv: Mixed GAM Computation Vehicle with Automatic Smoothness Estimation loaded.
+
+```{r loading the Time Indexed Series package, tis, output=FALSE}
+#library(tis)
+if (!require("tis")) install.packages("tis")
+if (!require("mgcv")) install.packages("mgcv")
+```
+
+```{r}
+# Model
+
+holidays = tis::holidays(years)
+holiday_names = names(holidays)
+holidays = as.Date(as.character(holidays), format = '%Y%m%d')
+names(holidays) = holiday_names
+
+df = df |>
+    mutate(
+        Year = as.factor(lubridate::year(Date)),
+        Wday = factor(lubridate::wday(Date, label = TRUE), levels = c("Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"), ordered = FALSE),
+        DayOfMonth = as.factor(lubridate::day(Date)),
+        DayOfYear = lubridate::yday(Date),
+        WeekOfYear = as.factor(lubridate::week(Date)),
+        IsHoliday = Date %in% holidays,
+        WhichHoliday = names(holidays)[match(Date, holidays)],
+        WhichHoliday = relevel(as.factor(case_when(is.na(WhichHoliday) ~ "ordinary", .default = WhichHoliday)), 'ordinary')
+    )
+
+df$ClosestHoliday = as.Date(sapply(df$Date, \(x) holidays[which.min(abs(x - holidays))]), origin = '1970-01-01')
+
+days_around_holiday = 5
+df = df |> mutate(SurroundsHoliday = abs(Date - ClosestHoliday) < days_around_holiday & abs(Date - ClosestHoliday) != 0)
+
+df = df |> arrange(Date)
+
+# # Model could be improved by adding in a COVID covariate explicitly instead of just modeling overall trend in Date.
+# mod = mgcv::gam(Numbers ~ s(as.numeric(Date)) + s(DayOfYear) + Wday + WhichHoliday + SurroundsHoliday, data = df)
+# mod_scaled = mgcv::gam(scale(Numbers) ~ s(as.numeric(Date)) + s(DayOfYear) + Wday + WhichHoliday + SurroundsHoliday, data = df)
+# summary(mod_scaled)
+# f = fitted(mod)
+# plot(df$Date, df$Numbers, type = 'l')
+# lines(df$Date, f, col = 'red')
+```
+
