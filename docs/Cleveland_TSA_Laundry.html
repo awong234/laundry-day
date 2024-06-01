@@ -6,7 +6,7 @@
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="author" content="Cleveland R User Group’s Alec Wong">
+<meta name="author" content="Daniel Navarro">
 
 <title>202404-tsa-passenger-volume</title>
 <style>
@@ -90,7 +90,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <div>
     <div class="quarto-title-meta-heading">Author</div>
     <div class="quarto-title-meta-contents">
-             <p>Cleveland R User Group’s Alec Wong </p>
+             <p>Daniel Navarro </p>
           </div>
   </div>
     
@@ -105,18 +105,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="goal" class="level2">
 <h2 class="anchored" data-anchor-id="goal">Goal</h2>
-<p>To run a Data Scrapping and wrangling exercise for the Cleveland R User group meetup: “acquiring and molding data into a conventional format ready to be used by data analytical tools.”</p>
+<p>Read TSA Air Passenger Volume data provided by the U.S. Government.</p>
+<p><a href="https://www.tsa.gov/travel/passenger-volumes" class="uri">https://www.tsa.gov/travel/passenger-volumes</a></p>
 </section>
 <section id="conventions" class="level2">
 <h2 class="anchored" data-anchor-id="conventions">Conventions</h2>
-<p>This document is only a nice version of the R code.</p>
-<p>Original comments from Alex are in quotes as well as variable names. All the original code is kept untouched and can be read in this document, some output is not shown when is not useful.</p>
+<p>This document is a quarto visual representation of the R code.</p>
+<p>Original comments from Alec are in quotes as well as variable names. All the original code is kept untouched and can be read in this document, some output is not shown when is not useful.</p>
 </section>
 <section id="development" class="level2">
 <h2 class="anchored" data-anchor-id="development">Development</h2>
 <p>Libraries used were rvest, dplyr and lubridate due to the extensive presence of dates in the read data.</p>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#library(rvest) # for scrapping</span></span>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">#library(rvest) # for scraping</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="co">#library(dplyr) # for data transformation</span></span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co">#library(lubridate) # for works with dates and times</span></span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
@@ -124,7 +125,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"dplyr"</span>)) <span class="fu">install.packages</span>(<span class="st">"dplyr"</span>)</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"lubridate"</span>)) <span class="fu">install.packages</span>(<span class="st">"lubridate"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Data was scrapped from tsa.gov website in two sets, from 2019 until 2023 in variable “joined_urls” because the table in the source website is different for the present year data and then in “this_years_data”.</p>
+<p>Data was scraped from the website <a href="https://www.tsa.gov/travel/passenger-volumes" class="uri">https://www.tsa.gov/travel/passenger-volumes</a> in two sets, from 2019 until 2023 in variable “joined_urls” because the table in the source website is different for the present year data and then in “this_years_data”.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>baseurl <span class="ot">=</span> <span class="st">"https://www.tsa.gov/travel/passenger-volumes"</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>years <span class="ot">=</span> <span class="fu">seq</span>(<span class="dv">2019</span>, <span class="dv">2023</span>)</span>
@@ -196,7 +197,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>        )</span>
 <span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Date formats were changed to a more computer-like format.</p>
+<p>Date formats were changed from a character representation to a standard Date format.</p>
 <p>As the source website has a different table for present year data, showing two columns in comparison with the previous year… “This year’s data – this is slightly different so we’ll treat it slightly differently.”</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># This year's data -- this is slightly different so we'll treat it slightly differently.</span></span>
@@ -301,12 +302,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <pre><code># A tibble: 6 × 2
   Date       Numbers
   &lt;date&gt;       &lt;dbl&gt;
-1 2024-05-23 2897417
-2 2024-05-22 2518844
-3 2024-05-21 2435516
-4 2024-05-20 2745343
-5 2024-05-19 2833203
-6 2024-05-18 2365576</code></pre>
+1 2024-05-30 2652394
+2 2024-05-29 2446990
+3 2024-05-28 2555317
+4 2024-05-27 2771151
+5 2024-05-26 2412782
+6 2024-05-25 2429025</code></pre>
 </div>
 </div>
 <p>Joining into one single data.</p>
@@ -373,7 +374,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb17-38"><a href="#cb17-38" aria-hidden="true" tabindex="-1"></a>    df</span>
 <span id="cb17-39"><a href="#cb17-39" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>At this point the Exploratory Data Analysis could beging, although the goal of the exercise was only to collect and tide the data, there was more time available that was used for some further analysis.</p>
+<p>At this point the Exploratory Data Analysis could begin, although the goal of the exercise was only to collect and tidy the data, there was more time available that was used for some further analysis.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visualize</span></span>
 <span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -386,12 +387,19 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>Tis. Time Indexed Series package loaded.</p>
+<p>Tis: Time Indexed Series package and mgcv: Mixed GAM Computation Vehicle with Automatic Smoothness Estimation loaded.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co">#library(tis)</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"tis"</span>)) <span class="fu">install.packages</span>(<span class="st">"tis"</span>)</span>
 <span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span> (<span class="sc">!</span><span class="fu">require</span>(<span class="st">"mgcv"</span>)) <span class="fu">install.packages</span>(<span class="st">"mgcv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
+<p>Final conclusions:</p>
+<ul>
+<li><p>Tuesdays are the least busy day to fly, followed by Saturday, and Wednesday.</p></li>
+<li><p>Fridays are the busiest day to fly, followed by Sunday, and Thursday</p></li>
+<li><p>Weekday (+/-5 days) surrounding holiday increases passenger volume by 0.13 standard deviations</p></li>
+<li><p>Least-traveled holidays are Thanksgiving, Independence Day, Christmas, in that order.”</p></li>
+</ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Model</span></span>
 <span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -419,13 +427,70 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb20-24"><a href="#cb20-24" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb20-25"><a href="#cb20-25" aria-hidden="true" tabindex="-1"></a>df <span class="ot">=</span> df <span class="sc">|&gt;</span> <span class="fu">arrange</span>(Date)</span>
 <span id="cb20-26"><a href="#cb20-26" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a><span class="co"># # Model could be improved by adding in a COVID covariate explicitly instead of just modeling overall trend in Date.</span></span>
-<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a><span class="co"># mod = mgcv::gam(Numbers ~ s(as.numeric(Date)) + s(DayOfYear) + Wday + WhichHoliday + SurroundsHoliday, data = df)</span></span>
-<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a><span class="co"># mod_scaled = mgcv::gam(scale(Numbers) ~ s(as.numeric(Date)) + s(DayOfYear) + Wday + WhichHoliday + SurroundsHoliday, data = df)</span></span>
-<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a><span class="co"># summary(mod_scaled)</span></span>
-<span id="cb20-31"><a href="#cb20-31" aria-hidden="true" tabindex="-1"></a><span class="co"># f = fitted(mod)</span></span>
-<span id="cb20-32"><a href="#cb20-32" aria-hidden="true" tabindex="-1"></a><span class="co"># plot(df$Date, df$Numbers, type = 'l')</span></span>
-<span id="cb20-33"><a href="#cb20-33" aria-hidden="true" tabindex="-1"></a><span class="co"># lines(df$Date, f, col = 'red')</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb20-27"><a href="#cb20-27" aria-hidden="true" tabindex="-1"></a><span class="co"># Model could be improved by adding in a COVID covariate explicitly instead of just modeling overall trend in Date.</span></span>
+<span id="cb20-28"><a href="#cb20-28" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">=</span> mgcv<span class="sc">::</span><span class="fu">gam</span>(Numbers <span class="sc">~</span> <span class="fu">s</span>(<span class="fu">as.numeric</span>(Date)) <span class="sc">+</span> <span class="fu">s</span>(DayOfYear) <span class="sc">+</span> Wday <span class="sc">+</span> WhichHoliday <span class="sc">+</span> SurroundsHoliday, <span class="at">data =</span> df)</span>
+<span id="cb20-29"><a href="#cb20-29" aria-hidden="true" tabindex="-1"></a>mod_scaled <span class="ot">=</span> mgcv<span class="sc">::</span><span class="fu">gam</span>(<span class="fu">scale</span>(Numbers) <span class="sc">~</span> <span class="fu">s</span>(<span class="fu">as.numeric</span>(Date)) <span class="sc">+</span> <span class="fu">s</span>(DayOfYear) <span class="sc">+</span> Wday <span class="sc">+</span> WhichHoliday <span class="sc">+</span> SurroundsHoliday, <span class="at">data =</span> df)</span>
+<span id="cb20-30"><a href="#cb20-30" aria-hidden="true" tabindex="-1"></a><span class="fu">summary</span>(mod_scaled)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Family: gaussian 
+Link function: identity 
+
+Formula:
+scale(Numbers) ~ s(as.numeric(Date)) + s(DayOfYear) + Wday + 
+    WhichHoliday + SurroundsHoliday
+
+Parametric coefficients:
+                          Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)               0.191708   0.023784   8.060 1.31e-15 ***
+WdayMon                  -0.106400   0.033974  -3.132  0.00176 ** 
+WdayTue                  -0.523600   0.032927 -15.902  &lt; 2e-16 ***
+WdayWed                  -0.400152   0.032939 -12.148  &lt; 2e-16 ***
+WdayThu                  -0.049103   0.033116  -1.483  0.13830    
+WdayFri                   0.009048   0.033017   0.274  0.78408    
+WdaySat                  -0.450567   0.032937 -13.680  &lt; 2e-16 ***
+WhichHolidayChristmas    -0.384899   0.200964  -1.915  0.05561 .  
+WhichHolidayColumbus      0.296837   0.178730   1.661  0.09691 .  
+WhichHolidayGWBirthday    0.495462   0.178342   2.778  0.00552 ** 
+WhichHolidayIndependence -0.445721   0.197829  -2.253  0.02437 *  
+WhichHolidayJuneteenth    0.283993   0.279188   1.017  0.30918    
+WhichHolidayLabor         0.222636   0.178618   1.246  0.21275    
+WhichHolidayMemorial      0.073708   0.178413   0.413  0.67955    
+WhichHolidayMLKing        0.325587   0.178455   1.824  0.06823 .  
+WhichHolidayNewYears      0.555746   0.202509   2.744  0.00612 ** 
+WhichHolidayThanksgiving -1.051611   0.179066  -5.873 5.03e-09 ***
+WhichHolidayVeterans      0.112775   0.197897   0.570  0.56883    
+SurroundsHolidayTRUE      0.131260   0.024292   5.403 7.35e-08 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Approximate significance of smooth terms:
+                      edf Ref.df       F p-value    
+s(as.numeric(Date)) 8.965  9.000 1124.56  &lt;2e-16 ***
+s(DayOfYear)        8.695  8.973   28.09  &lt;2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+R-sq.(adj) =  0.847   Deviance explained =   85%
+GCV = 0.15583  Scale est. = 0.15294   n = 1977</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Tuesdays are the least busy day to fly, followed by Saturday, and Wednesday.</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co"># Fridays are the busiest day to fly, followed by Sunday, and Thursday</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Weekday (+/-5 days) surrounding holiday increases passenger volume by 0.13 standard deviations</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Least-traveled holidays are Thanksgiving, Independence Day, Christmas, in that order.</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Visual inspection of model fit</span></span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>f <span class="ot">=</span> <span class="fu">fitted</span>(mod)</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(df<span class="sc">$</span>Date, df<span class="sc">$</span>Numbers, <span class="at">type =</span> <span class="st">'l'</span>)</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a><span class="fu">lines</span>(df<span class="sc">$</span>Date, f, <span class="at">col =</span> <span class="st">'red'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="Cleveland_TSA_Laundry_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
 
