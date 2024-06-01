@@ -1,0 +1,12 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.container {
+    margin: auto;
+    width: 800px;
+    min-height: 800px;
+    border-left: 1px dotted gray;
+    border-right: 1px dotted gray;
+    text-align: center;
+}
