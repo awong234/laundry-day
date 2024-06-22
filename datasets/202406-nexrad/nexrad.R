@@ -96,6 +96,12 @@ conus = states %>% filter(! STUSPS %in% c("AK", "HI", "GU", "MP", "AS", "PR", "V
 conus = sf::st_transform(conus, st_crs("EPSG:4326"))
 conus2 = sf::st_transform(conus, utm_zone_17)
 
+# Plotting the images using the CRS set to EPSG:4326
+# They are still _technically_ projected, unless you have a 3D visualizer you
+# always need to project to map on a 2D surface.
+# If the `sf` package is any reference, then the default projection used is an
+# equirectangular projection
+# https://en.wikipedia.org/wiki/Equirectangular_projection
 plot(img, type = 'interval', breaks = c(-30, 0, seq(5, 75, by = 5)), col = colors)
 plot(st_geometry(conus), graticule = TRUE, axes = TRUE, add = TRUE)
 
