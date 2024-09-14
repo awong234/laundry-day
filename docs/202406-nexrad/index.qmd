@@ -181,7 +181,7 @@ I'll plot this frame out.
 
 - This plot is just the first one, dated 2019-10-26 00:00:00. 
 - It is technically projected -- any time you create a map of the surface of a globe you will have to project it somehow. We didn't set one, but that doesn't mean it's not projected. The likely default is a mercator projection of some sort.
-- There's not much going on here.
+- We can see Olga developing in the south, already having migrated north from its origination point in the Gulf.
 
 ```{r}
 # Plotting the images using the CRS set to EPSG:4326
@@ -336,7 +336,8 @@ create_plots(ymd)
 create_animation(ymd)
 ```
 
-Finally, the output `.gif`!
+Finally, the output `.gif`! It is hard to mistake the path of Olga moving north 
+over the Midwestern USA.
 
 ```{r}
 knitr::include_graphics(file.path(dirname, 'animation.gif'))

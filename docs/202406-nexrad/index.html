@@ -261,7 +261,7 @@ Disabled features: fontconfig, x11</code></pre>
 <ul>
 <li>This plot is just the first one, dated 2019-10-26 00:00:00.</li>
 <li>It is technically projected – any time you create a map of the surface of a globe you will have to project it somehow. We didn’t set one, but that doesn’t mean it’s not projected. The likely default is a mercator projection of some sort.</li>
-<li>There’s not much going on here.</li>
+<li>We can see Olga developing in the south, already having migrated north from its origination point in the Gulf.</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plotting the images using the CRS set to EPSG:4326</span></span>
@@ -421,7 +421,7 @@ Disabled features: fontconfig, x11</code></pre>
 <span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="fu">create_plots</span>(ymd)</span>
 <span id="cb19-8"><a href="#cb19-8" aria-hidden="true" tabindex="-1"></a><span class="fu">create_animation</span>(ymd)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Finally, the output <code>.gif</code>!</p>
+<p>Finally, the output <code>.gif</code>! It is hard to mistake the path of Olga moving north over the Midwestern USA.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>knitr<span class="sc">::</span><span class="fu">include_graphics</span>(<span class="fu">file.path</span>(dirname, <span class="st">'animation.gif'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output-display">
