@@ -11,24 +11,24 @@ setwd(here::here('datasets', '202406-nexrad'))
 
 # Tinkering ---------------------------
 
-config = list(year = '2024', month = '04', day = '02')
+config = list(year = '2019', month = '10', day = '26')
 dirname = paste0(config, collapse = '')
 baseurl = 'https://mesonet.agron.iastate.edu/archive/data/{year}/{month}/{day}/GIS/uscomp'
 url = glue::glue(baseurl, .envir = config)
+# Need to get the list of images that iastate is providing from this website.
 # Need to get the list of images that iastate is providing from this website.
 page = rvest::read_html(url)
 # We get all the links on the page, and then the href. This is just a bare
 # template HTML listing the contents of the directory so this should be fairly
 # robust, but there's surely a better way...
-files = rvest::html_elements(page, xpath = r'(//a)') |>
-    rvest::html_attr('href')
-
+files = rvest::html_elements(page, xpath = r'(//a)') |> rvest::html_attr('href')
+# The files of interest have n0q in the name
 files = files[grepl(pattern = 'n0q', x = files) & !grepl(pattern = 'max', x = files)]
-# Avoid downloading files twice
-files_keep = setdiff(files, list.files(file.path('nexrad_images', dirname)))
-
+# Create output directory if not present
 dir.create(file.path('nexrad_images', dirname), showWarnings = FALSE, recursive = TRUE)
-
+# Avoid downloading files twice, if already present
+files_keep = setdiff(files, list.files(file.path('nexrad_images', dirname)))
+# Download the files
 files_download = file.path(url, files_keep)
 files_dest = file.path('nexrad_images', dirname, files_keep)
 
@@ -124,12 +124,12 @@ download_nexrad_day = function(year, month, day) {
     files = rvest::html_elements(page, xpath = r'(//a)') |> rvest::html_attr('href')
     files = files[grepl(pattern = 'n0q', x = files) & !grepl(pattern = 'max', x = files)]
     # Avoid downloading files twice
-    files_keep = setdiff(files, list.files(file.path('nexrad_images', dirname)))
-
-    dir.create(file.path('nexrad_images', dirname), showWarnings = FALSE, recursive = TRUE)
-
+    ymd = paste0(year, month, day)
+    outdir = file.path('nexrad_images', ymd)
+    dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+    files_keep = setdiff(files, list.files(outdir))
     files_download = file.path(url, files_keep)
-    files_dest = file.path('nexrad_images', dirname, files_keep)
+    files_dest = file.path('nexrad_images', ymd, files_keep)
 
     # # # # # # # # # # # # # # #
     # Download files -------------
@@ -165,31 +165,40 @@ load_us_shapefile = function() {
     conus
 }
 
-create_plots = function(dirname, time_resolution = 60, width = 720, height = 480) {
+create_plots = function(ymd, time_resolution = 60, width = 720, height = 480) {
     stopifnot((time_resolution %% 5) == 0)
-    image_files = list.files(path = file.path('nexrad_images', dirname), pattern = '.png')
+    image_files = list.files(path = file.path('nexrad_images', ymd), pattern = '.png')
     image_files = image_files[seq(1, length(image_files), by = time_resolution / 5)]
     for (i in seq_along(image_files)) {
         logger::log_info("image {i}")
         image_file = image_files[i]
         image_index = substr(image_file, 5, 16)
+        out_file = glue::glue('{dirname}/{dirname}_{image_index}.png')
+        if (file.exists(out_file)) {
+            next
+        }
         image_time = substr(image_file, 13, 16)
         image_time = strsplit(image_time, '')[[1]] |> append(":", after = 2) |> paste0(collapse = '')
-        img = load_image(file.path('nexrad_images', dirname, image_file))
-        dir.create(dirname, showWarnings = FALSE)
-        png(filename = glue::glue('{dirname}/{dirname}_{image_index}.png'), width = width, height = height)
-        plot(img, type = 'interval', breaks = c(-30, 0, seq(5, 75, by = 5)), col = colors, main = paste(dirname, image_time))
+        img = load_image(file.path('nexrad_images', ymd, image_file))
+        dir.create(ymd, showWarnings = FALSE)
+        png(filename = out_file, width = width, height = height)
+        plot(img, type = 'interval', breaks = c(-30, 0, seq(5, 75, by = 5)), col = colors, main = paste(ymd, image_time))
         plot(st_geometry(conus), add = TRUE)
         dev.off()
     }
 }
 
-create_animation = function(dirname, fps = 10) {
-    images = list.files(dirname, pattern = 'png')
-    images = magick::image_read(file.path(dirname, images))
+create_animation = function(ymd, fps = 10) {
+    out_file = file.path(ymd, 'animation.gif')
+    if (file.exists(out_file)) {
+        return(invisible(NULL))
+    }
+    images = list.files(ymd, pattern = 'png')
+    images = magick::image_read(file.path(ymd, images))
     gif = magick::image_animate(images, fps = fps)
-    magick::image_write(gif, path = file.path(dirname, 'animation.gif'))
+    magick::image_write(gif, path = out_file)
 }
+
 
 colors = c(
     '#646464',
@@ -211,11 +220,12 @@ colors = c(
 )
 
 
-# April 2 2024
+
+# October 26 2019
 
 conus = load_us_shapefile()
-config = list(year = '2024', month = '04', day = '02')
-dirname = paste0(config, collapse = '')
+config = list(year = '2019', month = '10', day = '26')
+ymd = paste0(config, collapse = '')
 download_nexrad_day(config$year, config$month, config$day)
-create_plots(dirname)
-create_animation(dirname)
+create_plots(ymd)
+create_animation(ymd)
