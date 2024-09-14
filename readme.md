@@ -14,3 +14,5 @@ properly.
 In these sessions, we'll take messy data and wrangle them into cleaner formats.
 We focus on the cleaning portion because a) the result is more objective and b)
 everyone needs to do it and can learn from other's styles.
+
+Some of the events are documented [here](awong234.github.io/laundry-day/)
