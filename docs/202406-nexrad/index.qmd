@@ -141,6 +141,7 @@ mapping = cbind(
 )
 img = classify(img, mapping)
 img2 = classify(img2, mapping)
+# Colors taken from the NEXRAD reference page https://mesonet.agron.iastate.edu/docs/nexrad_mosaic/ "Colormap Information"
 colors = c(
     '#646464',
     '#04e9e7',
@@ -179,7 +180,7 @@ conus2 = sf::st_transform(conus, utm_zone_17)
 
 I'll plot this frame out. 
 
-- This plot is just the first one, dated 2019-10-26 00:00:00. 
+- This plot is just the first file, dated 2019-10-26 00:00:00. 
 - It is technically projected -- any time you create a map of the surface of a globe you will have to project it somehow. We didn't set one, but that doesn't mean it's not projected. The likely default is a mercator projection of some sort.
 - We can see Olga developing in the south, already having migrated north from its origination point in the Gulf.
 
@@ -196,8 +197,8 @@ plot(st_geometry(conus), graticule = TRUE, axes = TRUE, add = TRUE)
 
 This second view has a specific projection -- UTM Zone 17. 
 
-- The axis units are different; UTM measures coordinates in meters so it is very convenient for calculating distances, but shape and direction are not preserved. 
-- Zone 17 is good for longitudes near OH, PA, NY, etc. It is not good for regions far from this longitude.
+- The axis units are different; UTM measures coordinates in meters so it is very convenient for calculating distances at smaller spatial scales, but shape and direction are not preserved at broad scales. (Yes I know the cartographic usage of small and large, but to avoid confusion I'm not using those here.)
+- Zone 17 is good for the Northeastern USA. It is not as good for regions far from this longitude.
 
 ```{r}
 # Notice that the axis units are different, and the US is warped.

@@ -225,24 +225,25 @@ Disabled features: fontconfig, x11</code></pre>
 <span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>img <span class="ot">=</span> <span class="fu">classify</span>(img, mapping)</span>
 <span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>img2 <span class="ot">=</span> <span class="fu">classify</span>(img2, mapping)</span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>colors <span class="ot">=</span> <span class="fu">c</span>(</span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#646464'</span>,</span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#04e9e7'</span>,</span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#019ff4'</span>,</span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#0300f4'</span>,</span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#02fd02'</span>,</span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#01c501'</span>,</span>
-<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#008e00'</span>,</span>
-<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#fdf802'</span>,</span>
-<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#e5bc00'</span>,</span>
-<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#fd9500'</span>,</span>
-<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#fd0000'</span>,</span>
-<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#d40000'</span>,</span>
-<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#bc0000'</span>,</span>
-<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#f800fd'</span>,</span>
-<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#9854c6'</span>,</span>
-<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#fdfdfd'</span></span>
-<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="co"># Colors taken from the NEXRAD reference page https://mesonet.agron.iastate.edu/docs/nexrad_mosaic/ "Colormap Information"</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>colors <span class="ot">=</span> <span class="fu">c</span>(</span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#646464'</span>,</span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#04e9e7'</span>,</span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#019ff4'</span>,</span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#0300f4'</span>,</span>
+<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#02fd02'</span>,</span>
+<span id="cb14-24"><a href="#cb14-24" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#01c501'</span>,</span>
+<span id="cb14-25"><a href="#cb14-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#008e00'</span>,</span>
+<span id="cb14-26"><a href="#cb14-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#fdf802'</span>,</span>
+<span id="cb14-27"><a href="#cb14-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#e5bc00'</span>,</span>
+<span id="cb14-28"><a href="#cb14-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#fd9500'</span>,</span>
+<span id="cb14-29"><a href="#cb14-29" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#fd0000'</span>,</span>
+<span id="cb14-30"><a href="#cb14-30" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#d40000'</span>,</span>
+<span id="cb14-31"><a href="#cb14-31" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#bc0000'</span>,</span>
+<span id="cb14-32"><a href="#cb14-32" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#f800fd'</span>,</span>
+<span id="cb14-33"><a href="#cb14-33" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#9854c6'</span>,</span>
+<span id="cb14-34"><a href="#cb14-34" aria-hidden="true" tabindex="-1"></a>    <span class="st">'#fdfdfd'</span></span>
+<span id="cb14-35"><a href="#cb14-35" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Finally, for reference we’ll want to look at the images in context with the CONUS boundaries. For this I’ll grab those directly from the TIGER census data.</p>
 <div class="cell">
@@ -259,7 +260,7 @@ Disabled features: fontconfig, x11</code></pre>
 </div>
 <p>I’ll plot this frame out.</p>
 <ul>
-<li>This plot is just the first one, dated 2019-10-26 00:00:00.</li>
+<li>This plot is just the first file, dated 2019-10-26 00:00:00.</li>
 <li>It is technically projected – any time you create a map of the surface of a globe you will have to project it somehow. We didn’t set one, but that doesn’t mean it’s not projected. The likely default is a mercator projection of some sort.</li>
 <li>We can see Olga developing in the south, already having migrated north from its origination point in the Gulf.</li>
 </ul>
@@ -282,8 +283,8 @@ Disabled features: fontconfig, x11</code></pre>
 </div>
 <p>This second view has a specific projection – UTM Zone 17.</p>
 <ul>
-<li>The axis units are different; UTM measures coordinates in meters so it is very convenient for calculating distances, but shape and direction are not preserved.</li>
-<li>Zone 17 is good for longitudes near OH, PA, NY, etc. It is not good for regions far from this longitude.</li>
+<li>The axis units are different; UTM measures coordinates in meters so it is very convenient for calculating distances at smaller spatial scales, but shape and direction are not preserved at broad scales. (Yes I know the cartographic usage of small and large, but to avoid confusion I’m not using those here.)</li>
+<li>Zone 17 is good for the Northeastern USA. It is not as good for regions far from this longitude.</li>
 </ul>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Notice that the axis units are different, and the US is warped.</span></span>
