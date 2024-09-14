@@ -1,0 +1,344 @@
+---
+title: "Visualizing NEXRAD Radar Data from Iowa State University"
+author: Alec Wong
+format: html
+editor: visual
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = here::here('docs', '202406-nexrad'))
+```
+
+![](iastate.png)
+
+# Overview
+
+Iowa State University maintains a high-resolution high-frequency dataset of the 
+radar reflectance measured over the United States of America. I am personally 
+interested in working with geospatial data, and lately weather data, so as an 
+exercise I thought it interesting to try and format the data for use. As an end
+product I'll make a `.gif` of a particular day's radar measurements.
+
+# The Data
+
+Iowa state mentions that: 
+
+- The data are available at 5-minutes intervals since 2010.
+- The data since 2010 have higher resolution in both reflectivity measurements and spatially.
+- The png raw data values map to a scale spanning -35 dbz to 75 dbz.
+- The CRS in use is WGS84.
+
+There is no API to obtain the data -- all of the data are presented in a raw 
+HTML directory listing, organized by year, month, and day.
+
+My approach is then to scrape the website directory for all the files, download 
+them, and then work them up locally into an animation.
+
+# Workflow
+
+Here are the packages I'll be using in this workflow.
+
+```{r packages}
+library(dplyr)
+library(rvest)  # For scraping the website 
+library(terra)  # For manipulating raster data
+library(sf)     # For manipulating vector data
+library(magick) # For manipulating the images later on into a gif
+```
+
+First I'll decide on a date to pull data for. Interesting dates will be days
+when some meteorological event occurred -- I'll pick Tropical Storm Olga, which
+started in the Gulf of Mexico on October 25, 2019, and ripped its way quickly up
+north through the midwestern United States before dissipating in Canada on
+October 27, 2019.
+
+# Tinkering 
+
+When I develop I usually tinker around interactively with a small example first,
+and then formalize it into a more organized system of functions.
+
+I'll start by setting some information -- the date in a config object, and the 
+URL location of the NEXRAD data.
+
+```{r}
+config = list(year = '2019', month = '10', day = '26')
+dirname = paste0(config, collapse = '')
+baseurl = 'https://mesonet.agron.iastate.edu/archive/data/{year}/{month}/{day}/GIS/uscomp'
+url = glue::glue(baseurl, .envir = config)
+```
+
+Next I'll read the webpage hosting the data. It is a bare webpage indexing the
+file contents sitting at that address. 
+
+There is probably a better way to approach downloading the files, but I know
+that I want the `.png` image files, and I know that I want the `n0q` files,
+which are higher-resolution in space and reflectivity.
+
+The destination for those image files are just the file name after the URL, 
+so I develop those destinations next.
+
+```{r}
+# Need to get the list of images that iastate is providing from this website.
+page = rvest::read_html(url)
+# We get all the links on the page, and then the href. This is just a bare
+# template HTML listing the contents of the directory so this should be fairly
+# robust, but there's surely a better way...
+files = rvest::html_elements(page, xpath = r'(//a)') |> rvest::html_attr('href')
+# The files of interest have n0q in the name
+files = files[grepl(pattern = 'n0q', x = files) & !grepl(pattern = 'max', x = files)]
+# Create output directory if not present
+dir.create(file.path('nexrad_images', dirname), showWarnings = FALSE, recursive = TRUE)
+# Avoid downloading files twice, if already present
+files_keep = setdiff(files, list.files(file.path('nexrad_images', dirname)))
+# Download the files
+files_download = file.path(url, files_keep)
+files_dest = file.path('nexrad_images', dirname, files_keep)
+
+# # # # # # # # # # # # # # #
+# Download files
+if (length(files_download)) {
+    curl::multi_download(files_download, files_dest, progress = TRUE)
+}
+
+# # # # # # # # # # # # # # #
+```
+
+With the files in hand, which again are just `.png` files, let's take a look at 
+just one. We'll load it up using `terra::rast`, ensure it has the correct CRS, 
+and reproject it to UTM Zone 17 for plotting.
+
+```{r}
+# Let's play around with a test file
+test_file = files[1]
+
+img = terra::rast(file.path('nexrad_images', dirname, test_file))
+crs(img) = crs("EPSG:4326")     # Set the CRS explicitly to WGS84. It's already using that but do it to be safe.
+utm_zone_17 = crs('EPSG:32617') # We'll use another projection -- UTM Zone 17 -- to see how it differs
+img[img == 0] = NA # Remove 0 levels; these are either missing or no cloud cover so we discard them for the purpose of visualization
+img2 = terra::project(img, utm_zone_17) # Reproject the original image to utm Zone 17.
+```
+
+The documentation for the data provides cuts for a common color representation
+for the reflectivity. This, I assume, is the general appearance of radar weather
+maps you typically see on things like weather channels.
+
+We'll prep the data and reclassify the reflectivity values into these cuts.
+
+```{r}
+# This next rounding step is necessary for the mapping later. The original
+# dataset has integer precision, so we want to keep it that way. Reprojection
+# has the side-effect of aggregating some pixel values so we might lose a bit of
+# accuracy but we round back to integer precision for the purpose of the color
+# mapping.
+values(img2) = round(values(img2))
+# Reclassify values. Raw values range from 0-255. Output values range -35 to 75
+# dbz, but < 0dbz is mapped to 0.
+raw_range = seq(0, 255)
+output_range = seq(-30, 75, length.out = length(raw_range))
+mapping = cbind(
+    raw_range,
+    output_range
+)
+img = classify(img, mapping)
+img2 = classify(img2, mapping)
+colors = c(
+    '#646464',
+    '#04e9e7',
+    '#019ff4',
+    '#0300f4',
+    '#02fd02',
+    '#01c501',
+    '#008e00',
+    '#fdf802',
+    '#e5bc00',
+    '#fd9500',
+    '#fd0000',
+    '#d40000',
+    '#bc0000',
+    '#f800fd',
+    '#9854c6',
+    '#fdfdfd'
+)
+```
+
+Finally, for reference we'll want to look at the images in context with the
+CONUS boundaries. For this I'll grab those directly from the TIGER census data.
+
+```{r}
+# Get US State boundaries
+tmp = tempfile()
+state_shapefile = 'cb_2018_us_state_20m'
+download.file(sprintf('https://www2.census.gov/geo/tiger/GENZ2018/shp/%s.zip', state_shapefile), tmp)
+unzip(tmp, exdir = state_shapefile)
+
+states = sf::read_sf(state_shapefile)
+conus = states %>% filter(! STUSPS %in% c("AK", "HI", "GU", "MP", "AS", "PR", "VI"))
+conus = sf::st_transform(conus, st_crs("EPSG:4326"))
+conus2 = sf::st_transform(conus, utm_zone_17)
+```
+
+I'll plot this frame out. 
+
+- This plot is just the first one, dated 2019-10-26 00:00:00. 
+- It is technically projected -- any time you create a map of the surface of a globe you will have to project it somehow. We didn't set one, but that doesn't mean it's not projected. The likely default is a mercator projection of some sort.
+- There's not much going on here.
+
+```{r}
+# Plotting the images using the CRS set to EPSG:4326
+# They are still _technically_ projected, unless you have a 3D visualizer you
+# always need to project to map on a 2D surface.
+# If the `sf` package is any reference, then the default projection used is an
+# equirectangular projection
+# https://en.wikipedia.org/wiki/Equirectangular_projection
+plot(img, type = 'interval', breaks = c(-30, 0, seq(5, 75, by = 5)), col = colors)
+plot(st_geometry(conus), graticule = TRUE, axes = TRUE, add = TRUE)
+```
+
+This second view has a specific projection -- UTM Zone 17. 
+
+- The axis units are different; UTM measures coordinates in meters so it is very convenient for calculating distances, but shape and direction are not preserved. 
+- Zone 17 is good for longitudes near OH, PA, NY, etc. It is not good for regions far from this longitude.
+
+```{r}
+# Notice that the axis units are different, and the US is warped.
+# UTM 17 is good for mapping the Northeast US, but direction is not preserved
+# away from longitudes near the NE US.
+plot(img2, type = 'interval', breaks = c(-30, 0, seq(5, 75, by = 5)), col = colors)
+plot(st_geometry(conus2), graticule = TRUE, axes = TRUE, add = TRUE)
+```
+
+# Full workflow
+
+Now that I've tinkered around with and understood a single image, we can extend
+this to handle many images at once. Below is the full workflow for generating an
+animation of reflectivity over the course of a single day.
+
+```{r}
+# Make an animation.
+# Now that we've tinkered with the workflow we can assemble it into functions
+# for ease-of-use.
+
+download_nexrad_day = function(year, month, day) {
+    baseurl = 'https://mesonet.agron.iastate.edu/archive/data/{year}/{month}/{day}/GIS/uscomp'
+    url = glue::glue(baseurl)
+    page = rvest::read_html(url)
+    files = rvest::html_elements(page, xpath = r'(//a)') |> rvest::html_attr('href')
+    files = files[grepl(pattern = 'n0q', x = files) & !grepl(pattern = 'max', x = files)]
+    # Avoid downloading files twice
+    ymd = paste0(year, month, day)
+    outdir = file.path('nexrad_images', ymd)
+    dir.create(outdir, showWarnings = FALSE, recursive = TRUE)
+    files_keep = setdiff(files, list.files(outdir))
+    files_download = file.path(url, files_keep)
+    files_dest = file.path('nexrad_images', ymd, files_keep)
+
+    # # # # # # # # # # # # # # #
+    # Download files -------------
+    if (length(files_download)) {
+        curl::multi_download(files_download, files_dest, progress = TRUE)
+    }
+}
+
+
+load_image = function(path) {
+    img = terra::rast(path)
+    crs(img) = crs("EPSG:4326")
+    img[img == 0] = NA # Remove 0 levels
+    raw_range = seq(0, 255)
+    output_range = seq(-30, 75, length.out = length(raw_range))
+    mapping = cbind(
+        raw_range,
+        output_range
+    )
+    img = classify(img, mapping)
+    img
+}
+
+load_us_shapefile = function() {
+    tmp = tempfile()
+    state_shapefile = 'cb_2018_us_state_20m'
+    download.file(sprintf('https://www2.census.gov/geo/tiger/GENZ2018/shp/%s.zip', state_shapefile), tmp)
+    unzip(tmp, exdir = state_shapefile)
+
+    states = sf::read_sf(state_shapefile)
+    conus = states %>% filter(! STUSPS %in% c("AK", "HI", "GU", "MP", "AS", "PR", "VI"))
+    conus = sf::st_transform(conus, st_crs("EPSG:4326"))
+    conus
+}
+
+create_plots = function(ymd, time_resolution = 60, width = 720, height = 480) {
+    stopifnot((time_resolution %% 5) == 0)
+    image_files = list.files(path = file.path('nexrad_images', ymd), pattern = '.png')
+    image_files = image_files[seq(1, length(image_files), by = time_resolution / 5)]
+    for (i in seq_along(image_files)) {
+        logger::log_info("image {i}")
+        image_file = image_files[i]
+        image_index = substr(image_file, 5, 16)
+        out_file = glue::glue('{dirname}/{dirname}_{image_index}.png')
+        if (file.exists(out_file)) {
+            next
+        }
+        image_time = substr(image_file, 13, 16)
+        image_time = strsplit(image_time, '')[[1]] |> append(":", after = 2) |> paste0(collapse = '')
+        img = load_image(file.path('nexrad_images', ymd, image_file))
+        dir.create(ymd, showWarnings = FALSE)
+        png(filename = out_file, width = width, height = height)
+        plot(img, type = 'interval', breaks = c(-30, 0, seq(5, 75, by = 5)), col = colors, main = paste(ymd, image_time))
+        plot(st_geometry(conus), add = TRUE)
+        dev.off()
+    }
+}
+
+create_animation = function(ymd, fps = 10) {
+    out_file = file.path(ymd, 'animation.gif')
+    if (file.exists(out_file)) {
+        return(invisible(NULL))
+    }
+    images = list.files(ymd, pattern = 'png')
+    images = magick::image_read(file.path(ymd, images))
+    gif = magick::image_animate(images, fps = fps)
+    magick::image_write(gif, path = out_file)
+}
+
+
+colors = c(
+    '#646464',
+    '#04e9e7',
+    '#019ff4',
+    '#0300f4',
+    '#02fd02',
+    '#01c501',
+    '#008e00',
+    '#fdf802',
+    '#e5bc00',
+    '#fd9500',
+    '#fd0000',
+    '#d40000',
+    '#bc0000',
+    '#f800fd',
+    '#9854c6',
+    '#fdfdfd'
+)
+
+```
+
+Let's make the graphic for October 26, 2019. For speed we won't reproject the
+space and we'll use the default projection.
+
+```{r}
+# October 26 2019
+
+conus = load_us_shapefile()
+config = list(year = '2019', month = '10', day = '26')
+ymd = paste0(config, collapse = '')
+download_nexrad_day(config$year, config$month, config$day)
+create_plots(ymd)
+create_animation(ymd)
+```
+
+Finally, the output `.gif`!
+
+```{r}
+knitr::include_graphics(file.path(dirname, 'animation.gif'))
+```
+
