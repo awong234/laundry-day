@@ -7,6 +7,6 @@
 *.csv
 *.wal
 *.png
-*.gif
 *.wld
 datasets/202406-nexrad/cb_2018_us_state_20m
+/docs/202406-nexrad/cb_2018_us_state_20m
