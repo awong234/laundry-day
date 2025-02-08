@@ -1,20 +1,24 @@
+# Start R here using .Rproj
+
+# Reproducibility ------------
+
+dir.create('lib', showWarnings = FALSE)
+.libPaths('lib')
+options(repos = c("CRAN" = 'https://packagemanager.posit.co/cran/2024-06-01'))
+if (! 'pak' %in% .packages(all.available=TRUE)) install.packages('pak', type = 'binary')
+pak::pkg_install(c('rvest', 'terra', 'dplyr', 'sf', 'logger', 'magick'))
+
 library(rvest)
 library(terra)
 library(dplyr)
 library(sf)
-
-# Your working directory should be in the folder described below.
-# ..../laundry-day/datasets/202406-nexrad
-# Ideally, start your R session by double-clicking the .Rproj file in the root
-# of the laundry-day project.
-setwd(here::here('datasets', '202406-nexrad'))
 
 # Tinkering ---------------------------
 
 config = list(year = '2019', month = '10', day = '26')
 dirname = paste0(config, collapse = '')
 baseurl = 'https://mesonet.agron.iastate.edu/archive/data/{year}/{month}/{day}/GIS/uscomp'
-url = glue::glue(baseurl, .envir = config)
+url = glue::glue(baseurl, .envir = as.environment(config))
 # Need to get the list of images that iastate is providing from this website.
 # Need to get the list of images that iastate is providing from this website.
 page = rvest::read_html(url)
@@ -173,7 +177,8 @@ create_plots = function(ymd, time_resolution = 60, width = 720, height = 480) {
         logger::log_info("image {i}")
         image_file = image_files[i]
         image_index = substr(image_file, 5, 16)
-        out_file = glue::glue('{dirname}/{dirname}_{image_index}.png')
+        out_file = glue::glue('out_imgs/{ymd}/{ymd}_{image_index}.png')
+        dir.create(dirname(out_file), showWarnings = FALSE, recursive = TRUE)
         if (file.exists(out_file)) {
             next
         }
@@ -189,12 +194,12 @@ create_plots = function(ymd, time_resolution = 60, width = 720, height = 480) {
 }
 
 create_animation = function(ymd, fps = 10) {
-    out_file = file.path(ymd, 'animation.gif')
+    out_file = file.path('out_imgs', ymd, 'animation.gif')
     if (file.exists(out_file)) {
         return(invisible(NULL))
     }
-    images = list.files(ymd, pattern = 'png')
-    images = magick::image_read(file.path(ymd, images))
+    images = list.files(file.path('out_imgs', ymd), pattern = 'png')
+    images = magick::image_read(file.path('out_imgs', ymd, images))
     gif = magick::image_animate(images, fps = fps)
     magick::image_write(gif, path = out_file)
 }

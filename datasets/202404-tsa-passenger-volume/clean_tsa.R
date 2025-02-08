@@ -1,6 +1,19 @@
+# Start R using .Rproj file
+
+# Strategy for reproducibility -----------------
+
+dir.create('lib', showWarnings = FALSE)
+.libPaths('lib')
+options(repos = c("CRAN" = 'https://packagemanager.posit.co/cran/2024-04-01'))
+if (! 'pak' %in% .packages(all.available=TRUE)) install.packages('pak', type = 'binary')
+pak::pkg_install(c('rvest', 'dplyr', 'lubridate', 'purrr', 'tis'))
+
+# Format data ------------------------
+
 library(rvest)
 library(dplyr)
 library(lubridate)
+library(purrr)
 
 baseurl = "https://www.tsa.gov/travel/passenger-volumes"
 years = seq(2019, 2023)

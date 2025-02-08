@@ -1,7 +1,19 @@
-library(pdftools)
+# Start R here using .Rproj
 
-# here::here references paths from the _root_ of the project.
-txt = pdf_text(here::here("datasets", "202403-cuyahoga-county-voter-registration-locations", "voter-registration-locations.pdf"))
+# Strategy for reproducibility ------------
+dir.create('lib', showWarnings = FALSE)
+.libPaths('lib')
+options(repos = c("CRAN" = 'https://packagemanager.posit.co/cran/2024-03-01'))
+if (! 'pak' %in% .packages(all.available=TRUE)) install.packages('pak', type = 'binary')
+
+pak::pkg_install(c('pdftools', 'ggmap', 'tidyr', 'reshape2', 'memoise'))
+
+# Format input ------------
+
+library(pdftools)
+library(ggmap)
+
+txt = pdf_text("voter-registration-locations.pdf")
 
 # Look at the first page
 
@@ -80,13 +92,13 @@ parse_pages = function(text) {
 
 pages = parse_pages(txt)
 
-# Map it!
+# Map it! ------------------
 
 library(ggmap)
 
 ggmap::register_google(key = Sys.getenv("GOOGLE_API"))
 
-geocode_m = memoise::memoise(ggmap::geocode, cache = cachem::cache_disk(here::here("datasets", "202403-cuyahoga-county-voter-registration-locations", "cache")))
+geocode_m = memoise::memoise(ggmap::geocode, cache = cachem::cache_disk("cache"))
 
 lonlat = purrr::map(pages$address, .f = function(x) {
     if (!is.na(x)) res = geocode_m(x) else res = tibble::tibble(lon = NA, lat = NA)
@@ -98,7 +110,7 @@ pages$lonlat = lonlat
 lonlat_df = lonlat |> do.call(what = rbind, args = _)
 lonlat_df$location = pages$location
 
-get_map_m = memoise::memoise(ggmap::get_map, cache = cachem::cache_disk(here::here("datasets", "202403-cuyahoga-county-voter-registration-locations", "cache", "map")))
+get_map_m = memoise::memoise(ggmap::get_map, cache = cachem::cache_disk(file.path("cache", "map")))
 
 ggmap(get_map_m(location = 'Cleveland')) +
     geom_point(data = lonlat_df, aes(x = lon, y = lat))

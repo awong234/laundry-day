@@ -4,7 +4,7 @@
 dir.create(file.path('lib', version$platform, version$major, version$minor), showWarnings = FALSE, recursive = TRUE)
 .libPaths(file.path('lib', version$platform, version$major, version$minor))
 options(repos = c("CRAN" = 'https://packagemanager.posit.co/cran/2025-02-07'))
-if (! 'pak' %in% installed.packages()[,1]) install.packages('pak', type = 'binary')
+if (! 'pak' %in% .packages(all.available=TRUE)) install.packages('pak', type = 'binary')
 pak::pkg_install(c('shiny', 'readxl', 'curl', 'dplyr', 'janitor', 'scales', 'DT'))
 
 library(shiny)

@@ -1,3 +1,14 @@
+# Start R here using .Rproj file
+
+# Strategy for reproducibility ---------------
+
+dir.create('lib', showWarnings = FALSE)
+.libPaths('lib')
+options(repos = c("CRAN" = 'https://packagemanager.posit.co/cran/2024-05-01'))
+if (! 'pak' %in% .packages(all.available = TRUE)) install.packages('pak', type = 'binary')
+
+pak::pkg_install(c('DBI', 'duckdb', 'dplyr', 'data.table', 'ggplot2', 'ggrepel', 'patchwork', 'dbplyr'))
+
 library(DBI)
 library(duckdb)
 library(dplyr)
@@ -6,26 +17,24 @@ library(ggplot2)
 library(ggrepel)
 library(patchwork)
 
-folder = here::here('datasets/202405-fuel-economy/')
-
 # Save datasets
 veh_url = 'https://fueleconomy.gov/feg/epadata/vehicles.csv'
 emi_url = 'https://fueleconomy.gov/feg/epadata/emissions.csv'
 
-download.file(veh_url, file.path(folder, 'vehicles.csv'))
-download.file(emi_url, file.path(folder, 'emissions.csv'))
+if(! file.exists('vehicles.csv')) download.file(veh_url, 'vehicles.csv')
+if(! file.exists('emissions.csv')) download.file(emi_url, 'emissions.csv')
 
 # duckdb ------------------------------------
 
 # Delete the database -- (we don't have to do this, but for illustration I'm starting from nothing)
-unlink(file.path(folder, 'data.db'))
+if (file.exists('data.db')) unlink('data.db')
 # Make a connection to the duckdb database. It's just a file, so if it's not there it creates it.
-con = dbConnect(duckdb(), file.path(folder, 'data.db'))
+con = dbConnect(duckdb(), 'data.db')
 
 # Read the emissions data into duckdb -- ~50K records read in
-dbExecute(con, glue::glue("create table emissions as select * from '{file.path(folder, 'emissions.csv')}'"))
+dbExecute(con, glue::glue("create table emissions as select * from 'emissions.csv'"))
 # (Attempt to) read the vehicles data into duckdb -- problem is a literal string 'NA' value in the cylinders column.
-dbExecute(con, glue::glue("create table vehicles as select * from '{file.path(folder, 'vehicles.csv')}'"))
+try(dbExecute(con, glue::glue("create table vehicles as select * from 'vehicles.csv'")))
 
 # Remedy this temporarily by having duckdb scan the entire table to figure out
 # data types. This will set the cylinders and displ columns to be varchar, but
@@ -36,7 +45,7 @@ dbExecute(con, glue::glue("create table vehicles as select * from '{file.path(fo
 q = glue::glue("
 create table vehicles as
 select * from read_csv(
-    '{file.path(folder, 'vehicles.csv')}',
+    'vehicles.csv',
     sample_size=-1
 )
 ")
@@ -279,6 +288,6 @@ p3 = ggplot(gas_vehicles) +
 # Manual MPG has dropped in recent years
 # This can be explained by an increasing mix of more powerful manual vehicles.
 # Manual cars used to be sold as base models, but are now sold as enthusiast
-# models which so they tend to be more powerful and
+# models which so they tend to be more powerful
 p1 / p2 / p3
 
