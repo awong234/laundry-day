@@ -34,7 +34,8 @@ con = dbConnect(duckdb(), 'data.db')
 # Read the emissions data into duckdb -- ~50K records read in
 dbExecute(con, glue::glue("create table emissions as select * from 'emissions.csv'"))
 # (Attempt to) read the vehicles data into duckdb -- problem is a literal string 'NA' value in the cylinders column.
-try(dbExecute(con, glue::glue("create table vehicles as select * from 'vehicles.csv'")))
+# This results in an error. Not run.
+# dbExecute(con, glue::glue("create table vehicles as select * from 'vehicles.csv'"))
 
 # Remedy this temporarily by having duckdb scan the entire table to figure out
 # data types. This will set the cylinders and displ columns to be varchar, but
