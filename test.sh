@@ -41,8 +41,6 @@ popd
 
 # Needs to be manually inspected because it is a shiny app
 pushd datasets/202502-netflix-engagement
-# Rscript app.R
-# report
+Rscript app.R > log.txt 2>&1
+report
 popd
-
-
