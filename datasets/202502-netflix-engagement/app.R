@@ -1,10 +1,10 @@
 # Start R here using .Rproj file in this folder.
 
-# Strategy for reproducible "virtual" library. Also in the .Rprofile, but put here for greater visibility.
-# Use of `version` is a little more specific and prevents mixing package
-# versions if another version is used accidentally. This is similar to Julia's
-# package management system, which by default pegs the user library to Julia's
-# version.
+# Strategy for reproducible "virtual" library. Usually, wiser to put this the
+# project .Rprofile, but put here for greater visibility. Use of `version` is a
+# little more specific and prevents mixing package versions if another version
+# is used accidentally. This is similar to Julia's package management system,
+# which by default pegs the user library to Julia's version.
 library_path = file.path('lib', version$platform, version$major, version$minor)
 dir.create(library_path, showWarnings = FALSE, recursive = TRUE)
 .libPaths(library_path)
