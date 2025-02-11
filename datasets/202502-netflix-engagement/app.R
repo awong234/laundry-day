@@ -5,8 +5,9 @@
 # versions if another version is used accidentally. This is similar to Julia's
 # package management system, which by default pegs the user library to Julia's
 # version.
-dir.create(file.path('lib', version$platform, version$major, version$minor), showWarnings = FALSE, recursive = TRUE)
-.libPaths(file.path('lib', version$platform, version$major, version$minor))
+library_path = file.path('lib', version$platform, version$major, version$minor)
+dir.create(library_path, showWarnings = FALSE, recursive = TRUE)
+.libPaths(library_path)
 options(repos = c("CRAN" = 'https://packagemanager.posit.co/cran/2025-02-07'))
 if (! 'pak' %in% .packages(all.available=TRUE)) install.packages('pak', type = 'binary')
 pak::pkg_install(c('shiny', 'readxl', 'curl', 'dplyr', 'janitor', 'scales', 'DT'))

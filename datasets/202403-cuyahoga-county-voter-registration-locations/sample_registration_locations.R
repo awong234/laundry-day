@@ -1,8 +1,9 @@
 # Start R here using .Rproj
 
 # Strategy for reproducibility ------------
-dir.create('lib', showWarnings = FALSE)
-.libPaths('lib')
+library_path = file.path('lib', version$platform, version$major, version$minor)
+dir.create(library_path, showWarnings = FALSE, recursive = TRUE)
+.libPaths(library_path)
 options(repos = c("CRAN" = 'https://packagemanager.posit.co/cran/2024-03-01'))
 if (! 'pak' %in% .packages(all.available=TRUE)) install.packages('pak', type = 'binary')
 
